@@ -13,10 +13,11 @@ import RegisterPage from "./pages/auth/RegisterPage";
 // Layout e Páginas do Dashboard
 import DashboardLayout from "./pages/dashboard/Layout";
 import DashboardPage from "./pages/dashboard/DashboardPage";
-import ConfiguracoesPage from "./pages/dashboard/ConfiguracoesPage";
-import AjudaPage from "./pages/dashboard/AjudaPage";
 import RespostasPage from "./pages/dashboard/RespostasPage";
 import CalculadoraPage from "./pages/dashboard/CalculadoraPage";
+import ControleEstoquePage from "./pages/dashboard/ControleEstoquePage";
+import ConfiguracoesPage from "./pages/dashboard/ConfiguracoesPage";
+import AjudaPage from "./pages/dashboard/AjudaPage";
 
 const queryClient = new QueryClient();
 
@@ -50,6 +51,7 @@ const App = () => (
             <Route index element={<DashboardPage />} />
             <Route path="respostas" element={<RespostasPage />} />
             <Route path="calculadora" element={<CalculadoraPage />} />
+            <Route path="estoque" element={<ControleEstoquePage />} />
             <Route path="configuracoes" element={<ConfiguracoesPage />} />
             <Route path="ajuda" element={<AjudaPage />} />
           </Route>

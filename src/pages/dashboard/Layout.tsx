@@ -1,7 +1,7 @@
 import React from 'react';
 import { SidebarProvider } from '@/components/ui/sidebar'; // Nota: A sidebar UI não está a ser usada aqui, mas mantemos o provider.
 import { Button } from '@/components/ui/button';
-import { Bell, User, Settings, LifeBuoy, LogOut, Home, MessageSquare, Calculator } from 'lucide-react';
+import { Bell, User, Settings, LifeBuoy, LogOut, Home, MessageSquare, Calculator, Package } from 'lucide-react';
 import { NavLink, Outlet, useLocation, Link } from 'react-router-dom';
 import { cn } from "@/lib/utils";
 
@@ -9,6 +9,7 @@ const mainSidebarNav = [
   { title: 'Painel', icon: Home, to: '/dashboard' },
   { title: 'Respostas Automáticas', icon: MessageSquare, to: '/dashboard/respostas' },
   { title: 'Calculadora de Lucro', icon: Calculator, to: '/dashboard/calculadora' },
+  { title: 'Controle de Estoque', icon: Package, to: '/dashboard/estoque' }, 
 ];
 
 const footerSidebarNav = [
@@ -44,8 +45,8 @@ export default function DashboardLayout() {
       <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
         <div className="hidden border-r bg-background md:block">
           <div className="flex h-full max-h-screen flex-col gap-2">
-            <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
-              <Link to="/dashboard" className="flex items-center gap-2 font-semibold">
+          <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
+          <Link to="/dashboard" className="flex items-center gap-2 font-semibold">
                 <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
                   <span className="text-white font-bold text-sm">H</span>
                 </div>
