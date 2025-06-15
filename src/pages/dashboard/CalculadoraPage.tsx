@@ -1,193 +1,168 @@
+import { useState } from 'react';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Calculator, Check, ChevronsUpDown } from 'lucide-react';
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { mercadoLivreData, outrasPlataformas, Subcategoria } from '@/lib/mercado-livre-data';
 
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Calculator, TrendingUp, DollarSign } from 'lucide-react';
-
-const CalculadoraLucro = () => {
+export default function CalculadoraLucroPage() {
   const [formData, setFormData] = useState({
     custo: '',
+    frete: '',
+    outrosCustos: '',
     lucroDesejado: '',
-    plataforma: 'mercado_livre'
+    tipoAnuncioML: 'premium',
   });
+  
+  const [selectedCategoria, setSelectedCategoria] = useState<Subcategoria | null>(null);
+  const [open, setOpen] = useState(false);
+  const [resultados, setResultados] = useState([]);
 
-  const [resultado, setResultado] = useState<any>(null);
-
-  const plataformas = {
-    mercado_livre: { nome: 'Mercado Livre', comissao: 0.16, taxa_fixa: 0 },
-    amazon: { nome: 'Amazon', comissao: 0.15, taxa_fixa: 2.5 },
-    shopee: { nome: 'Shopee', comissao: 0.12, taxa_fixa: 0 },
-    magazine_luiza: { nome: 'Magazine Luiza', comissao: 0.18, taxa_fixa: 0 }
+  const handleChange = (e) => {
+    const { id, value } = e.target;
+    setFormData(prev => ({ ...prev, [id]: value }));
   };
 
   const calcularPreco = () => {
-    const custo = parseFloat(formData.custo) || 0;
-    const lucroDesejado = parseFloat(formData.lucroDesejado) || 0;
-    const plat = plataformas[formData.plataforma as keyof typeof plataformas];
+    const { custo, frete, outrosCustos, lucroDesejado, tipoAnuncioML } = formData;
+    const custoNum = parseFloat(custo) || 0;
+    const freteNum = parseFloat(frete) || 0;
+    const outrosCustosNum = parseFloat(outrosCustos) || 0;
+    const lucroDesejadoNum = parseFloat(lucroDesejado) || 0;
 
-    const custoTotal = custo;
-    const margemLucro = lucroDesejado / 100;
-    
-    // Cálculo: Preço = (Custo + Lucro) / (1 - Comissão)
-    const precoBase = custoTotal / (1 - margemLucro);
-    const precoFinal = precoBase / (1 - plat.comissao) + plat.taxa_fixa;
-    
-    const comissaoValor = precoFinal * plat.comissao + plat.taxa_fixa;
-    const lucroFinal = precoFinal - custoTotal - comissaoValor;
-    const margemFinal = (lucroFinal / precoFinal) * 100;
+    const custoTotal = custoNum + freteNum + outrosCustosNum;
+    const margemLucro = lucroDesejadoNum / 100;
+    const novosResultados = [];
 
-    setResultado({
-      precoFinal: precoFinal.toFixed(2),
-      comissaoValor: comissaoValor.toFixed(2),
-      lucroFinal: lucroFinal.toFixed(2),
-      margemFinal: margemFinal.toFixed(1),
-      plataforma: plat.nome
+    // Cálculo Mercado Livre
+    if (selectedCategoria) {
+        const taxaAnuncio = selectedCategoria.taxas[tipoAnuncioML];
+        const taxaFixaML = 6.00;
+        let precoFinalML = (custoTotal + taxaFixaML) / (1 - margemLucro - taxaAnuncio);
+        if (precoFinalML >= 79) { precoFinalML += freteNum * 0.5; }
+        const comissaoValorML = (precoFinalML * taxaAnuncio) + taxaFixaML;
+        const lucroFinalML = precoFinalML - custoTotal - comissaoValorML;
+        const margemFinalML = (lucroFinalML / precoFinalML) * 100;
+        novosResultados.push({ nome: 'Mercado Livre', logo: 'https://placehold.co/40x40/FFE600/000000?text=ML', precoFinal: precoFinalML.toFixed(2), comissaoValor: comissaoValorML.toFixed(2), lucroFinal: lucroFinalML.toFixed(2), margemFinal: margemFinalML.toFixed(1) });
+    }
+    
+    // Cálculo Outras Plataformas
+    Object.values(outrasPlataformas).forEach(plat => {
+      const precoFinal = (custoTotal + plat.taxa_fixa) / (1 - margemLucro - plat.comissao);
+      const comissaoValor = (precoFinal * plat.comissao) + plat.taxa_fixa;
+      const lucroFinal = precoFinal - custoTotal - comissaoValor;
+      const margemFinal = (lucroFinal / precoFinal) * 100;
+      novosResultados.push({ ...plat, precoFinal: precoFinal.toFixed(2), comissaoValor: comissaoValor.toFixed(2), lucroFinal: lucroFinal.toFixed(2), margemFinal: margemFinal.toFixed(1) });
     });
+    setResultados(novosResultados);
   };
+
+  const isFormValid = formData.custo && formData.lucroDesejado && selectedCategoria;
 
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Calculadora de Lucro</h1>
-        <p className="text-gray-600">Calcule o preço ideal considerando custos e comissões</p>
+        <h1 className="text-2xl font-bold tracking-tight">Calculadora Avançada de Precificação</h1>
+        <p className="text-muted-foreground">Analise custos, taxas e lucro para tomar a melhor decisão.</p>
       </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Calculator Form */}
-        <div className="bg-white p-6 rounded-3xl border border-gray-100">
-          <h3 className="text-lg font-semibold text-gray-900 mb-6">Dados do Produto</h3>
-          
-          <div className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Custo do Produto (R$)
-              </label>
-              <input
-                type="number"
-                placeholder="Ex: 150.00"
-                value={formData.custo}
-                onChange={(e) => setFormData({...formData, custo: e.target.value})}
-                className="w-full px-4 py-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Margem de Lucro Desejada (%)
-              </label>
-              <input
-                type="number"
-                placeholder="Ex: 30"
-                value={formData.lucroDesejado}
-                onChange={(e) => setFormData({...formData, lucroDesejado: e.target.value})}
-                className="w-full px-4 py-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Plataforma de Venda
-              </label>
-              <select
-                value={formData.plataforma}
-                onChange={(e) => setFormData({...formData, plataforma: e.target.value})}
-                className="w-full px-4 py-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                {Object.entries(plataformas).map(([key, plat]) => (
-                  <option key={key} value={key}>
-                    {plat.nome} ({(plat.comissao * 100).toFixed(1)}% comissão)
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <Button 
-              onClick={calcularPreco}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-2xl text-lg font-semibold"
-              disabled={!formData.custo || !formData.lucroDesejado}
-            >
-              <Calculator className="w-5 h-5 mr-2" />
-              Calcular Preço Ideal
-            </Button>
-          </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+        <div className="lg:col-span-1 space-y-8">
+          <Card>
+            <CardHeader><CardTitle>1. Custos e Meta</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2"><Label htmlFor="custo">Custo de Compra (R$)</Label><Input id="custo" type="number" placeholder="Ex: 85.50" value={formData.custo} onChange={handleChange} /></div>
+              <div className="space-y-2"><Label htmlFor="frete">Custo do Frete (R$)</Label><Input id="frete" type="number" placeholder="Ex: 22.00" value={formData.frete} onChange={handleChange} /></div>
+              <div className="space-y-2"><Label htmlFor="outrosCustos">Outros Custos (R$)</Label><Input id="outrosCustos" type="number" placeholder="Embalagem, impostos, etc." value={formData.outrosCustos} onChange={handleChange} /></div>
+              <div className="space-y-2"><Label htmlFor="lucroDesejado">Margem de Lucro Desejada (%)</Label><Input id="lucroDesejado" type="number" placeholder="Ex: 25" value={formData.lucroDesejado} onChange={handleChange} /></div>
+            </CardContent>
+          </Card>
+           <Card>
+            <CardHeader><CardTitle>2. Configurações Mercado Livre</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>Categoria do Produto</Label>
+                <Dialog open={open} onOpenChange={setOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" role="combobox" aria-expanded={open} className="w-full justify-between">
+                      <span className="truncate">{selectedCategoria ? selectedCategoria.nome : "Selecione uma categoria..."}</span>
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="p-0">
+                    <Command>
+                      <CommandInput placeholder="Pesquisar categoria..." />
+                      <CommandList>
+                        <CommandEmpty>Nenhuma categoria encontrada.</CommandEmpty>
+                        {mercadoLivreData.map((categoria) => (
+                          <CommandGroup key={categoria.id} heading={categoria.nome}>
+                            {categoria.subcategorias.map((subcat) => (
+                              <CommandItem
+                                key={subcat.nome}
+                                value={`${categoria.nome} > ${subcat.nome}`}
+                                onSelect={() => {
+                                  setSelectedCategoria(subcat);
+                                  setOpen(false);
+                                }}
+                              >
+                                <Check className={`mr-2 h-4 w-4 ${selectedCategoria?.nome === subcat.nome ? "opacity-100" : "opacity-0"}`} />
+                                {subcat.nome}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        ))}
+                      </CommandList>
+                    </Command>
+                  </DialogContent>
+                </Dialog>
+              </div>
+              <div className="space-y-2">
+                <Label>Tipo de Anúncio</Label>
+                <RadioGroup value={formData.tipoAnuncioML} onValueChange={(value) => setFormData(prev => ({ ...prev, tipoAnuncioML: value }))} className="flex gap-4">
+                  <div className="flex items-center space-x-2"><RadioGroupItem value="classico" id="classico" /><Label htmlFor="classico">Clássico</Label></div>
+                  <div className="flex items-center space-x-2"><RadioGroupItem value="premium" id="premium" /><Label htmlFor="premium">Premium</Label></div>
+                </RadioGroup>
+              </div>
+            </CardContent>
+          </Card>
+          <Button onClick={calcularPreco} className="w-full text-lg py-6" disabled={!isFormValid}><Calculator className="w-5 h-5 mr-2" />Calcular</Button>
         </div>
-
-        {/* Results */}
-        <div className="bg-white p-6 rounded-3xl border border-gray-100">
-          <h3 className="text-lg font-semibold text-gray-900 mb-6">Resultado</h3>
-          
-          {resultado ? (
-            <div className="space-y-6">
-              <div className="p-4 bg-green-50 rounded-2xl border border-green-200">
-                <div className="flex items-center mb-2">
-                  <DollarSign className="w-5 h-5 text-green-600 mr-2" />
-                  <span className="font-semibold text-green-800">Preço Final</span>
+        <div className="lg:col-span-2">
+           <Card>
+            <CardHeader>
+              <CardTitle>Resultados da Precificação</CardTitle>
+              <CardDescription>O preço de venda ideal para atingir sua meta em cada plataforma.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {resultados.length > 0 ? (
+                <div className="space-y-4">
+                  {resultados.map(res => (
+                    <Card key={res.nome} className="bg-muted/30">
+                       <CardHeader className="flex flex-row items-center justify-between pb-2">
+                        <CardTitle className="text-lg font-semibold flex items-center gap-3">
+                          <img src={res.logo} alt={`Logo ${res.nome}`} className="w-8 h-8 rounded-full border-2 border-background" />
+                          {res.nome}
+                        </CardTitle>
+                        <div className="text-3xl font-bold text-primary">R$ {res.precoFinal}</div>
+                      </CardHeader>
+                      <CardContent className="grid grid-cols-3 gap-4 text-center pt-2">
+                          <div className="flex flex-col"><span className="text-sm text-muted-foreground">Lucro Líquido</span><span className="font-semibold text-green-600">R$ {res.lucroFinal}</span></div>
+                          <div className="flex flex-col"><span className="text-sm text-muted-foreground">Taxas Totais</span><span className="font-semibold text-red-600">R$ {res.comissaoValor}</span></div>
+                          <div className="flex flex-col"><span className="text-sm text-muted-foreground">Margem Real</span><span className="font-semibold text-primary">{res.margemFinal}%</span></div>
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
-                <p className="text-3xl font-bold text-green-900">R$ {resultado.precoFinal}</p>
-                <p className="text-sm text-green-600">{resultado.plataforma}</p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 bg-blue-50 rounded-2xl">
-                  <p className="text-sm text-blue-600 mb-1">Comissão</p>
-                  <p className="text-xl font-bold text-blue-900">R$ {resultado.comissaoValor}</p>
-                </div>
-                <div className="p-4 bg-purple-50 rounded-2xl">
-                  <p className="text-sm text-purple-600 mb-1">Lucro Final</p>
-                  <p className="text-xl font-bold text-purple-900">R$ {resultado.lucroFinal}</p>
-                </div>
-              </div>
-
-              <div className="p-4 bg-gray-50 rounded-2xl">
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Margem de Lucro Real:</span>
-                  <span className="font-bold text-gray-900">{resultado.margemFinal}%</span>
-                </div>
-              </div>
-
-              <div className="space-y-2 text-sm text-gray-600">
-                <h4 className="font-semibold text-gray-900">Detalhamento:</h4>
-                <div className="space-y-1">
-                  <div className="flex justify-between">
-                    <span>Custo do produto:</span>
-                    <span>R$ {formData.custo}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Comissão da plataforma:</span>
-                    <span>R$ {resultado.comissaoValor}</span>
-                  </div>
-                  <div className="flex justify-between font-semibold">
-                    <span>Lucro líquido:</span>
-                    <span>R$ {resultado.lucroFinal}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="text-center py-12 text-gray-500">
-              <Calculator className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-              <p>Preencha os campos e clique em calcular</p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Platform Comparison */}
-      <div className="bg-white p-6 rounded-3xl border border-gray-100">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Comparativo de Comissões</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {Object.entries(plataformas).map(([key, plat]) => (
-            <div key={key} className="p-4 border border-gray-200 rounded-2xl hover:border-blue-300 transition-colors">
-              <h4 className="font-semibold text-gray-900 mb-2">{plat.nome}</h4>
-              <p className="text-2xl font-bold text-blue-600">{(plat.comissao * 100).toFixed(1)}%</p>
-              {plat.taxa_fixa > 0 && (
-                <p className="text-sm text-gray-500">+ R$ {plat.taxa_fixa.toFixed(2)} fixo</p>
+              ) : (
+                <div className="text-center py-20 text-muted-foreground"><Calculator className="mx-auto h-12 w-12 mb-4" /><p>Preencha todos os campos para ver os resultados.</p></div>
               )}
-            </div>
-          ))}
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
   );
-};
-
-export default CalculadoraLucro;
+}

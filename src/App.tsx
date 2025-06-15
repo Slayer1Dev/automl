@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ThemeProvider } from "@/components/theme-provider"; // Importe o ThemeProvider
 
 // Páginas Públicas
 import Index from "./pages/Index";
@@ -23,42 +24,33 @@ const queryClient = new QueryClient();
 
 // Componente provisório para simular a proteção de rotas.
 const ProtectedRoute = ({ children }) => {
-  // A lógica de verificação do Clerk virá aqui.
   return children;
 };
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          {/* Rotas Públicas */}
-          <Route path="/" element={<Index />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-
-          {/* Rotas Protegidas (utilizam o DashboardLayout) */}
-          <Route 
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <DashboardLayout />
-              </ProtectedRoute>
-            }
-          >
-            <Route index element={<DashboardPage />} />
-            <Route path="respostas" element={<RespostasPage />} />
-            <Route path="calculadora" element={<CalculadoraPage />} />
-            <Route path="estoque" element={<ControleEstoquePage />} />
-            <Route path="configuracoes" element={<ConfiguracoesPage />} />
-            <Route path="ajuda" element={<AjudaPage />} />
-          </Route>
-          
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            {/* ... Suas Rotas ... */}
+            <Route path="/" element={<Index />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
+              <Route index element={<DashboardPage />} />
+              <Route path="respostas" element={<RespostasPage />} />
+              <Route path="calculadora" element={<CalculadoraPage />} />
+              <Route path="estoque" element={<ControleEstoquePage />} />
+              <Route path="configuracoes" element={<ConfiguracoesPage />} />
+              <Route path="ajuda" element={<AjudaPage />} />
+            </Route>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </ThemeProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

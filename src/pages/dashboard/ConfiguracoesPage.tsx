@@ -3,18 +3,52 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { useTheme } from "@/components/theme-provider"; // Importe o hook
+import { Moon, Sun } from "lucide-react";
 
 export default function ConfiguracoesPage() {
+  const { theme, setTheme } = useTheme(); // Use o hook
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Configurações</h1>
-        <p className="text-gray-500">
+        <p className="text-muted-foreground">
           Gira as informações do seu perfil e as suas conexões.
         </p>
       </div>
       
       <Separator />
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Aparência</CardTitle>
+          <CardDescription>
+            Personalize a aparência da aplicação.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="theme" className="text-base">Tema</Label>
+            <div className="flex items-center gap-2">
+              <Button
+                variant={theme === 'light' ? 'default' : 'outline'}
+                size="icon"
+                onClick={() => setTheme("light")}
+              >
+                <Sun className="h-5 w-5" />
+              </Button>
+               <Button
+                variant={theme === 'dark' ? 'default' : 'outline'}
+                size="icon"
+                onClick={() => setTheme("dark")}
+              >
+                <Moon className="h-5 w-5" />
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
@@ -44,10 +78,10 @@ export default function ConfiguracoesPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+          <div className="flex items-center justify-between p-4 bg-muted/40 rounded-lg">
             <div>
               <h3 className="font-semibold">Mercado Livre</h3>
-              <p className="text-sm text-gray-500">Não conectado</p>
+              <p className="text-sm text-muted-foreground">Não conectado</p>
             </div>
             <Button className="bg-yellow-400 text-black hover:bg-yellow-500">
               Conectar com Mercado Livre
