@@ -1,35 +1,28 @@
 
 import React, { useEffect, useState } from 'react';
-import { MessageSquare, Package, Calculator, TrendingUp, Search, Zap } from 'lucide-react';
+import { MessageSquare, Package, Calculator, Search } from 'lucide-react';
 
 const features = [
   {
     icon: MessageSquare,
     title: 'Respostas Automáticas',
     description: 'IA responde perguntas dos compradores automaticamente, mantendo seu padrão de atendimento personalizado.',
-    microcopy: 'Economize até 3 horas por dia respondendo dúvidas repetitivas automaticamente.',
+    microcopy: 'Economize até 3 horas por dia respondendo dúvidas repetitivas.',
     color: 'from-blue-500 to-blue-600'
   },
   {
     icon: Package,
     title: 'Controle de Estoque',
     description: 'Sincronize estoque entre múltiplos anúncios e marketplaces em tempo real.',
-    microcopy: 'Nunca mais venda produtos sem estoque disponível em sua loja.',
+    microcopy: 'Nunca mais venda produtos sem estoque disponível.',
     color: 'from-green-500 to-green-600'
   },
   {
     icon: Calculator,
     title: 'Calculadora de Lucro',
     description: 'Calcule preços ideais considerando custos, comissões e margem desejada.',
-    microcopy: 'Defina preços competitivos que garantem sua margem de lucro ideal.',
+    microcopy: 'Defina preços competitivos que garantem sua margem ideal.',
     color: 'from-purple-500 to-purple-600'
-  },
-  {
-    icon: TrendingUp,
-    title: 'Gerador de EAN',
-    description: 'Gere códigos EAN-13 válidos para seus produtos de forma instantânea.',
-    microcopy: 'Códigos únicos e válidos aceitos em todos os grandes marketplaces.',
-    color: 'from-orange-500 to-orange-600'
   },
   {
     icon: Search,
@@ -37,13 +30,6 @@ const features = [
     description: 'IA melhora títulos e descrições para maior visibilidade nos resultados.',
     microcopy: 'Apareça primeiro nas buscas com títulos otimizados automaticamente.',
     color: 'from-pink-500 to-pink-600'
-  },
-  {
-    icon: Zap,
-    title: 'Dashboard Inteligente',
-    description: 'Métricas em tempo real e insights para otimizar suas vendas.',
-    microcopy: 'Visualize performance e tome decisões baseadas em dados concretos.',
-    color: 'from-indigo-500 to-indigo-600'
   }
 ];
 
@@ -87,7 +73,7 @@ const FeatureCards = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10 lg:gap-12">
+        <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10 lg:gap-12">
           {features.map((feature, index) => (
             <div 
               key={index}

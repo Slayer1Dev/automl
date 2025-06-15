@@ -24,10 +24,12 @@ const Navigation = () => {
             {/* O link "Sobre" foi removido daqui */}
             <a href="#funcionalidades" className="text-gray-600 hover:text-blue-600 transition-colors scroll-smooth" style={{ scrollMarginTop: '5rem' }}>Funcionalidades</a>
             <a href="#precos" className="text-gray-600 hover:text-blue-600 transition-colors scroll-smooth" style={{ scrollMarginTop: '5rem' }}>Preços</a>
-            <Button variant="outline" className="border-blue-200 text-blue-600 hover:bg-blue-50">
-              <User className="w-4 h-4 mr-2" />
-              Login
-            </Button>
+            <Link to="/login">
+              <Button variant="outline" className="border-blue-200 text-blue-600 hover:bg-blue-50">
+                <User className="w-4 h-4 mr-2" />
+                Login
+              </Button>
+            </Link>
           </div>
 
           {/* Mobile menu button */}
@@ -50,10 +52,12 @@ const Navigation = () => {
               <a href="#funcionalidades" className="text-gray-600 hover:text-blue-600 transition-colors px-4 scroll-smooth" style={{ scrollMarginTop: '5rem' }}>Funcionalidades</a>
               <a href="#precos" className="text-gray-600 hover:text-blue-600 transition-colors px-4 scroll-smooth" style={{ scrollMarginTop: '5rem' }}>Preços</a>
               <div className="px-4">
-                <Button variant="outline" className="w-full border-blue-200 text-blue-600 hover:bg-blue-50">
-                  <User className="w-4 h-4 mr-2" />
-                  Login
-                </Button>
+                <Link to="/login">
+                  <Button variant="outline" className="w-full border-blue-200 text-blue-600 hover:bg-blue-50">
+                    <User className="w-4 h-4 mr-2" />
+                    Login
+                  </Button>
+                </Link>
               </div>
             </div>
           </div>
