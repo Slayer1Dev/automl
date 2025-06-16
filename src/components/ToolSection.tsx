@@ -1,5 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { MessageSquare, Barcode, Calculator, Search, Package, ArrowRight, Play, Check, Zap } from 'lucide-react';
+import { MessageSquare, Calculator, Search, Package, ArrowRight, Play, Check, Zap, Barcode } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from '@/components/ui/button';
 
 const iconMap = {
   chat: MessageSquare,
@@ -20,29 +22,24 @@ const colorMap = {
 // Custom Hook para animação de "count up"
 const useCountUp = (end: number, duration: number, startAnimation: boolean) => {
   const [count, setCount] = useState(0);
-  const frameRate = 1000 / 60;
-  const totalFrames = Math.round(duration / frameRate);
-
   useEffect(() => {
-    if (startAnimation) {
-      let frame = 0;
-      const counter = setInterval(() => {
-        frame++;
-        const progress = (frame / totalFrames);
-        setCount(end * progress);
-
-        if (frame === totalFrames) {
-          clearInterval(counter);
-          setCount(end); // Garante o valor final exato
-        }
-      }, frameRate);
-      return () => clearInterval(counter);
-    }
+    if (!startAnimation) return;
+    let frame = 0;
+    const totalFrames = Math.round(duration / (1000 / 60));
+    const counter = setInterval(() => {
+      frame++;
+      const progress = frame / totalFrames;
+      setCount(end * progress);
+      if (frame === totalFrames) {
+        clearInterval(counter);
+        setCount(end);
+      }
+    }, 1000 / 60);
+    return () => clearInterval(counter);
   }, [end, duration, startAnimation]);
 
   return Math.floor(count);
 };
-
 
 const ToolSection = ({ tool, index, scrollY }) => {
   const [isVisible, setIsVisible] = useState(false);
@@ -53,7 +50,6 @@ const ToolSection = ({ tool, index, scrollY }) => {
   // Animação de contagem para a calculadora
   const animatedPrice = useCountUp(89.90, 1500, animationStep >= 3);
   const animatedProfit = useCountUp(28, 1500, animationStep >= 3);
-
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -69,23 +65,13 @@ const ToolSection = ({ tool, index, scrollY }) => {
       },
       { threshold: 0.3 }
     );
+    const currentRef = sectionRef.current;
+    if (currentRef) observer.observe(currentRef);
+    return () => { if (currentRef) observer.unobserve(currentRef) };
+  }, [isVisible]);
 
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current);
-    }
-
-    return () => {
-      if (sectionRef.current) {
-        observer.unobserve(sectionRef.current);
-      }
-    };
-  }, [tool.id, isVisible]);
-
-
-  // Enhanced parallax with multiple layers
   const parallaxOffset = (scrollY * 0.15 * (index + 1));
   const parallaxOffsetSlow = (scrollY * 0.05 * (index + 1));
-  const parallaxOffsetFast = (scrollY * 0.25 * (index + 1));
   const isEven = index % 2 === 0;
 
   const renderMockup = () => {
@@ -109,32 +95,7 @@ const ToolSection = ({ tool, index, scrollY }) => {
             </div>
           </div>
         );
-      
-      case 'barcode-generation':
-        return (
-          <div className="space-y-8">
-            <div className={`transform transition-all duration-700 delay-300 ${animationStep >= 1 ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}>
-              <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-2xl relative overflow-hidden">
-                {/* Efeito de "scan" */}
-                <div className={`absolute top-0 left-0 h-1.5 w-20 bg-red-500/80 blur-sm transform transition-transform duration-1000 ${animationStep >= 2 ? 'translate-y-24' : '-translate-y-full'}`}></div>
-                <div className="flex flex-col items-center">
-                  <div className="flex space-x-1 mb-6 h-16 items-end">
-                    {[...Array(25)].map((_, i) => (
-                      <div key={i} className={`w-1 bg-gray-900 transform transition-all duration-300 ease-out`} style={{ height: `${Math.sin(i * Math.PI / 24) * 100}%`, transitionDelay: `${i*20}ms`}}></div>
-                    ))}
-                  </div>
-                  <div className={`text-sm font-mono font-bold transform transition-all duration-500 delay-800 ${animationStep >= 3 ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}>
-                    7891234567890
-                  </div>
-                  <div className={`text-xs text-gray-500 mt-2 transform transition-all duration-500 delay-1000 ${animationStep >= 3 ? 'opacity-100' : 'opacity-0'}`}>
-                    Código EAN válido gerado
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      
+
       case 'profit-calculation':
         return (
           <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-2xl max-w-sm">
@@ -246,7 +207,7 @@ const ToolSection = ({ tool, index, scrollY }) => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className={`grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center ${isEven ? '' : 'lg:grid-flow-col-dense'}`}>
+        <div className={`grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center ${!isEven ? 'lg:grid-flow-col-dense' : ''}`}>
           
           <div className={`${isEven ? 'lg:order-1' : 'lg:order-2'} flex justify-center`}>
             <div 
@@ -260,35 +221,55 @@ const ToolSection = ({ tool, index, scrollY }) => {
 
           <div className={`${isEven ? 'lg:order-2' : 'lg:order-1'} px-4 lg:px-0`}>
             <div 
-              className={`transform transition-all duration-1000 ease-out delay-300 ${isVisible ? 'translate-x-0 opacity-100' : `${isEven ? 'translate-x-[100px]' : 'translate-x-[-100px]'} opacity-0`}`}
+              className={`transform transition-all duration-1000 ease-out delay-300 ${isVisible ? 'translate-x-0 opacity-100' : `${!isEven ? 'translate-x-[-100px]' : 'translate-x-[100px]'} opacity-0`}`}
             >
-              <div className={`inline-flex items-center px-5 py-3 bg-white/90 backdrop-blur-sm border border-${tool.color}-100 rounded-2xl text-${tool.color}-700 text-sm font-medium mb-8 shadow-lg`}>
+              <div className={`inline-flex items-center px-5 py-3 bg-white/90 dark:bg-slate-800/50 backdrop-blur-sm border border-${tool.color}-100 dark:border-slate-700 rounded-2xl text-${tool.color}-700 dark:text-${tool.color}-400 text-sm font-medium mb-8 shadow-lg`}>
                 <span className={`w-2.5 h-2.5 bg-gradient-to-r ${colorMap[tool.color]} rounded-full mr-3`}></span>
                 Ferramenta #{index + 1}
               </div>
               
-              <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-8 leading-tight">
+              <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-gray-50 mb-8 leading-tight">
                 {tool.title}
               </h2>
               
-              <p className="text-xl md:text-2xl text-gray-600 mb-8 leading-relaxed">
+              <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
                 {tool.description}
               </p>
               
-              <p className="text-lg md:text-xl text-gray-500 mb-12 leading-relaxed">
+              <p className="text-lg md:text-xl text-gray-500 dark:text-gray-400 mb-12 leading-relaxed">
                 {tool.details}
               </p>
               
               <div className="flex flex-col sm:flex-row gap-6">
-                <button className={`bg-gradient-to-r ${colorMap[tool.color]} text-white px-10 py-5 rounded-3xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center group text-lg`}>
-                  <Play className="w-5 h-5 mr-3" />
-                  Ver em ação
-                  <ArrowRight className="w-5 h-5 ml-3 group-hover:translate-x-1 transition-transform" />
-                </button>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button className={`bg-gradient-to-r ${colorMap[tool.color]} text-white px-10 py-5 rounded-3xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center group text-lg`}>
+                        <Play className="w-5 h-5 mr-3" />
+                        Ver em ação
+                        <ArrowRight className="w-5 h-5 ml-3 group-hover:translate-x-1 transition-transform" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                      <DialogHeader>
+                          <DialogTitle>{tool.title}</DialogTitle>
+                          <DialogDescription>Demonstração em vídeo em breve!</DialogDescription>
+                      </DialogHeader>
+                  </DialogContent>
+                </Dialog>
                 
-                <button className="border-2 border-gray-200 text-gray-700 px-10 py-5 rounded-3xl font-semibold hover:bg-gray-50 transition-all duration-300 text-lg">
-                  Saiba mais
-                </button>
+                <Dialog>
+                    <DialogTrigger asChild>
+                        <Button variant="outline" className="border-2 border-gray-200 dark:border-slate-700 text-gray-700 dark:text-gray-300 px-10 py-5 rounded-3xl font-semibold hover:bg-gray-50 dark:hover:bg-slate-800 transition-all duration-300 text-lg">
+                            Saiba mais
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                          <DialogTitle>Sobre: {tool.title}</DialogTitle>
+                          <DialogDescription>{tool.details} Mais informações e documentação detalhada estarão disponíveis aqui em breve.</DialogDescription>
+                      </DialogHeader>
+                  </DialogContent>
+                </Dialog>
               </div>
             </div>
           </div>
